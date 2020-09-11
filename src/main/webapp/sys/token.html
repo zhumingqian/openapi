@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Token管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<form action="#" class="layui-form">
+    <div class="layui-form-item" style="margin-left: 10px;margin-top: 10px">
+        <div class="layui-inline">
+            <label>名称:</label>
+            <div class="layui-inline">
+                <input type="text" name="accessToken" id="accessToken" autocomplete="off" placeholder="请输入token"
+                       class="layui-input">
+            </div>
+            <input type="button" class="layui-btn" id="searchInfo" value="搜索"/>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="tokenInfo-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">
+            <i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tokenInfo-tokenInfo-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-tokenInfo">编辑</a>
+</script>
+<table id="demo" lay-filter="tokenInfo-table"></table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    $(function () {
+        renderTable();
+
+        search();
+    })
+
+    function search() {
+        $("#searchInfo").click(function () {
+            var at = $("#accessToken").val();
+            layui.use(['table','form'], function () {
+                var table = layui.table;
+                var form = layui.form;
+                form.render();
+                //第一个实例
+                table.render({
+                    elem: '#demo'
+                    , height: 550
+                    , toolbar: '#tokenInfo-head-bar'
+                    , url: 'sys/token/queryTokenByCondition?accessToken=' + at
+                    , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                    , cols: [[ //表头
+                        {type: 'checkbox', width: 80}
+                        , {field: 'id', title: 'ID', width: 80}
+                        , {field: 'userId', title: '客户ID'}
+                        , {field: 'accessToken', title: 'token内容'}
+                        , {field: 'startTime',
+                            title: '开始时间',templet:"<td>{{layui.util.toDateString(d.startTime, \'yyyy-MM-dd HH:mm:ss\')}}</td>"}
+                        , {field: 'expireTime', title: '结束时间',templet:"<td>{{layui.util.toDateString(d.expireTime, \'yyyy-MM-dd HH:mm:ss\')}}</td>"}
+                        , {field: 'right', title: '操作', toolbar: '#tokenInfo-tokenInfo-bar', width: 80}
+                    ]]
+                });
+            });
+        });
+
+    }
+
+    function renderTable() {
+        layui.use(['table', 'form', 'layer'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            form.render();
+            //第一个实例
+            table.render({
+                elem: '#demo'
+                , height: 550
+                , toolbar: '#tokenInfo-head-bar'
+                , url: 'sys/token/queryAllInfo' //数据接口
+                , page: {'limits': [5 , 10 , 15 , 20]}//开启分页
+                , cols: [[ //表头
+                    {type: 'checkbox', width: 80}
+                    , {field: 'id', title: 'ID', width: 80}
+                    , {field: 'userId', title: '客户ID'}
+                    , {field: 'accessToken', title: 'token内容'}
+                    , {field: 'startTime',
+                        title: '开始时间',templet:"<td>{{layui.util.toDateString(d.startTime, \'yyyy-MM-dd HH:mm:ss\')}}</td>"}
+                    , {field: 'expireTime', title: '结束时间',templet:"<td>{{layui.util.toDateString(d.expireTime, \'yyyy-MM-dd HH:mm:ss\')}}</td>"}
+                    , {field: 'right', title: '操作', toolbar: '#tokenInfo-tokenInfo-bar', width: 80}
+                ]]
+            })
+            table.on('toolbar(tokenInfo-table)', function (obj) {
+                var event = obj.event;
+                // console.log(event);
+                switch (event) {
+                    case 'goEdit': openEditWindow(null);
+                        break;
+                    case 'delete':
+                        layer.confirm("确定删除?",function (index) {
+                            /*获得选中行数据*/
+                            var data = table.checkStatus('demo').data;
+                            var dataStr = "";
+                            $.each(data , function (i , item) {
+                                dataStr += "&ids="+item.id;
+                            })
+                            $.ajax({
+                                type:"post"
+                                ,url:"sys/token/delete"
+                                ,data:dataStr
+                                ,success:function (str) {
+                                    if(str.status){
+                                        /*删除成功!重载表格*/
+                                        table.reload('demo',{});
+                                    }else{
+                                        /*删除失败，提示信息*/
+                                        alert(str.message);
+                                    }
+                                    layer.close(index);
+                                }
+                            })
+                        });
+                        break;
+                }
+
+            })
+            table.on('tool(tokenInfo-table)', function (obj) {
+                var event = obj.event;
+                switch (event) {
+                    case 'edit-tokenInfo':openEditWindow(obj.data);
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type: 1
+                    , title: data==null?"添加":"编辑"
+                    , area: ['500px', '400px']
+                    , content:$("#tokenInfo-edit-layer").html()
+                    , btn: ['提交', '取消']
+                    , yes: function (index, layero) {
+                        $.ajax({
+                            type: "post"
+                            ,url: "sys/token/" + (data == null ? "add" : "update")
+                            ,data:$("#tokenInfo-edit-form").serialize()
+                            ,success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    , success: function (layero, index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("tokenInfo-edit-form", data);
+                        }
+                        $.ajax({
+                            type:"get"
+                            ,url:"sys/token/queryCustomer"
+                            ,success:function (res) {
+                                if(res){
+                                    for (var i = 0 ; i < res.length ; i++){
+                                        if(data&&data.userId&&data.userId==res[i].id){
+                                            $("#userId").append("<option selected value="+res[i].id+">"+res[i].nickName+"</option>")
+                                        }else{
+                                            $("#userId").append("<option value="+res[i].id+">"+res[i].nickName+"</option>")
+                                        }
+                                    }
+                                }
+                                form.render();
+                            }
+                        })
+                    }
+                })
+            }
+        });
+    }
+</script>
+<script type="text/html" id="tokenInfo-edit-layer">
+    <form id="tokenInfo-edit-form" style="width: 80%" class="layui-form" lay-filter="tokenInfo-edit-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属客户</label>
+            <div class="layui-input-block">
+                <select id="userId" name="userId">
+
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">token内容</label>
+            <div class="layui-input-block">
+                <input type="text" name="accessToken" required lay-verify="required" placeholder="请输入token内容"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">开始时间</label>
+            <div class="layui-input-block">
+                <input type="date" name="startTime" required lay-verify="required" placeholder="开始时间" autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">结束时间</label>
+            <div class="layui-input-block">
+                <input type="date" name="expireTime" required lay-verify="required" placeholder="结束时间"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.RoleMapper">
+
+    <select id="queryAllRoleInfo" resultType="com.qianfeng.openapi.web.master.pojo.Role">
+        select * from role
+    </select>
+
+    <insert id="addRoleInfo">
+        insert into role(name, remark, status) values (#{name},#{remark},#{status})
+    </insert>
+
+    <update id="updateRoleInfoById">
+        update role
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+            where id = #{id}
+    </update>
+
+    <delete id="deleteRoleInfoByIds">
+        delete from role
+        where id in
+        <foreach collection="array" separator="," open="(" close=")" item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="addAdminUserRole">
+        insert into user_role (user_id, role_id)
+        values (#{id},#{role})
+    </insert>
+
+    <delete id="deleteOriginalRoleMenuRelation">
+        delete from role_menu
+        where ROLE_ID = #{id}
+    </delete>
+
+    <insert id="updateRoleMenu">
+        insert into role_menu(role_id, menu_id)
+        values (#{role_Id},#{menu_Id})
+    </insert>
+
+    <select id="queryRoleMenuCount" resultType="java.lang.Integer">
+        select count(ROLE_ID) from role_menu
+        where ROLE_ID = #{id}
+    </select>
+</mapper>

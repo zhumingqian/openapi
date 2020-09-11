@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>角色管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<script type="text/html" id="roleInfo-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">
+            <i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="roleInfo-roleInfo-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-roleInfo">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="menu-roleInfo">左侧菜单管理</a>
+</script>
+<table id="demo" lay-filter="roleInfo-table"></table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    $(function () {
+        renderTable();
+    })
+    function renderTable() {
+        layui.use(['table', 'form', 'layer'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            form.render();
+            //第一个实例
+            table.render({
+                elem: '#demo'
+                , height: 550
+                , toolbar: '#roleInfo-head-bar'
+                , url: 'sys/role/queryAllRoleInfo' //数据接口
+                , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                , cols: [[ //表头
+                    {type: 'checkbox', width: 80}
+                    , {field: 'id', title: 'ID'}
+                    , {field: 'name', title: '角色名'}
+                    , {field: 'remark', title: '角色备注'}
+                    , {
+                        field: 'status', title: '角色状态',templet: function (data) {
+                            if(data.status == 1){
+                                return '<span class="layui-badge layui-bg-green">正常</span>';
+                            }else if(data.status == 0){
+                                return '<span class="layui-badge layui-bg-red">不正常</span>';
+                            }
+                        }
+                    }
+                    , {field: 'right', title: '操作', toolbar: '#roleInfo-roleInfo-bar'}
+                ]]
+            })
+            table.on('toolbar(roleInfo-table)', function (obj) {
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        /*获取所有选中行数据*/
+                        var data = table.checkStatus("demo").data;
+                        // console.log(data);
+                        if (data.length > 0) {
+                            layer.confirm("确定删除选中数据?", function (index) {
+                                var params = "";
+                                /*遍历data*/
+                                $.each(data, function (i, obj) {
+                                    params += "&ids=" + obj.id;
+                                })
+                                /*发送ajax请求*/
+                                $.ajax({
+                                    type: "post"
+                                    , url: "sys/role/deleteRoleInfo"
+                                    , data: params
+                                    , success: function (data) {
+                                        if (data.status) {
+                                            table.reload("demo", {});
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                        layer.close(index);
+                                    }
+                                });
+                            });
+                        }
+                        break;
+                }
+            })
+            table.on('tool(roleInfo-table)', function (obj) {
+                var data = obj.data;
+                switch (obj.event) {
+                    case 'edit-roleInfo':
+                        openEditWindow(data);
+                        break;
+                    case 'menu-roleInfo':
+                        openMenuManagerWindow(data);
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type: 1
+                    , title: data==null?"添加":"编辑"
+                    , area: ['500px', '400px']
+                    , content:$("#roleInfo-edit-layer").html()
+                    , btn: ['提交', '取消']
+                    , yes: function (index, layero) {
+                        $.ajax({
+                            type: "post"
+                            ,url: "sys/role/" + (data == null ? "add" : "update")
+                            ,data:$("#roleInfo-edit-form").serialize()
+                            ,success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    , success: function (layero, index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("roleInfo-edit-form", data);
+                            form.val("roleInfo-edit-form", {
+                                "state": data.state + ""
+                            });
+                        }
+                    }
+                })
+            }
+
+            function openMenuManagerWindow(data) {
+                layer.open({
+                    type:1
+                    ,title:'左侧菜单管理'
+                    , area: ['500px', '400px']
+                    , content:$("#roleInfo-menu-layer").html()
+                    , btn: ['提交', '取消']
+                    ,yes:function (index, layero) {
+                        var menuIds = document.getElementsByName("menu_Id");
+                        var arr_menuId = "";
+                        for(var i = 0 ; i < menuIds.length ; i++){
+                            if(menuIds[i].checked){
+                                arr_menuId += "&menuId=" + menuIds[i].value;
+                            }
+                        }
+                        $.ajax({
+                            type: "post"
+                            ,url: "sys/role/updateRoleMenu?id="+data.id+arr_menuId
+                            ,success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    ,success:function (layero,index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("roleInfo-edit-form", data);
+                            // form.val("roleInfo-edit-form", {
+                            //     "state": data.state + ""
+                            // });
+                        }
+                        $.ajax({
+                            type:"get"
+                            ,url:"sys/role/queryRoleMenu"
+                            ,success:function (str) {
+                                if(str) {
+                                    for (var i = 0; i < str.length; i++) {
+                                        $("#menuId").append("<input type=\"checkbox\" name=\"menu_Id\" value=\"" + str[i].id + "\">" + str[i].name + "<br/>");
+                                    }
+                                }
+                                form.render();
+                            }
+                        })
+                    }
+                })
+            }
+        });
+    }
+</script>
+<script type="text/html" id="roleInfo-edit-layer">
+    <form id="roleInfo-edit-form" style="width: 80%" class="layui-form" lay-filter="roleInfo-edit-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入角色名"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" required lay-verify="required" placeholder="请输入角色备注"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="status" title="正常" value="1" checked/>
+                <input type="radio" name="status" title="不正常" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/html" id="roleInfo-menu-layer">
+    <form id="roleInfo-menu-form" style="width: 80%" class="layui-form" lay-filter="roleInfo-menu-form">
+        <input type="hidden" name="id" id="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">菜单选择</label>
+            <div class="layui-input-block" name="menuId" id="menuId">
+<!--&lt;!&ndash;                <select name="menuId" id="menuId">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                </select>&ndash;&gt;-->
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

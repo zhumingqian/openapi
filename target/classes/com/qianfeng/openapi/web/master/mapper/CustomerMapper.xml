@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.CustomerMapper">
+    <select id="queryAllCustomer" resultType="com.qianfeng.openapi.web.master.pojo.Customer">
+        select *
+        from customer
+    </select>
+
+    <insert id="addCustomer">
+        insert into customer
+        values (null,#{userName},#{password},#{nickName},#{address},#{money},#{state})
+    </insert>
+
+    <update id="updateCustomerInfo">
+        update customer
+        <set>
+            <if test="userName != null and userName != ''">
+                userName = #{userName},
+            </if>
+            <if test="password != null and password != ''">
+                 password = #{password},
+            </if>
+            <if test="nickName != null and nickName != ''">
+                 nickName = #{nickName},
+            </if>
+            <if test="address != null and address != ''">
+                 address = #{address},
+            </if>
+            <if test="money != null and money != ''">
+                 money = #{money},
+            </if>
+            <if test="state != null">
+                 state = #{state},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteCustomersByIds">
+        delete from customer
+        where id in
+        <foreach item="id"  collection="array" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryCustomerByCondition" resultType="com.qianfeng.openapi.web.master.pojo.Customer">
+        select *
+        from customer
+        <where>
+            <if test="userName != null and userName != ''">
+                and userName like concat('%',#{userName},'%')
+            </if>
+            <if test="state != null">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+    <select id="queryCustomerById" resultType="com.qianfeng.openapi.web.master.pojo.Customer">
+        select * from customer
+        where id = #{cusId}
+    </select>
+</mapper>

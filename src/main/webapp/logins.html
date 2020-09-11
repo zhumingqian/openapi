@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <script type="text/javascript" charset="UTF-8" src="js/jquery-3.4.1.js" ></script>
+    <script type="text/javascript" charset="UTF-8" src="layui/layui.js"></script>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+<div style="width:400px;height: 300px;position: absolute;left: 0;right: 0;top: 0;bottom: 0;margin: auto">
+    <div style="width: 100%;height: 50px;line-height50px;text-align: center;font-size: 30px;font-weight: bold">Login
+    </div>
+    <form class="layui-form" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户账户</label>
+            <div class="layui-input-inline">
+                <input type="text" name="email" required lay-verify="required" placeholder="请输入邮箱号登录" autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码框</label>
+            <div class="layui-input-inline">
+                <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-word-aux"
+             style="width: 200px;height: 20px;font-size: 16px;text-align: center;margin: auto ;margin-top:0;margin-bottom: 5px">
+            <span id="msg"></span>
+            </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    //Demo
+    layui.use('form', function(){
+        var form = layui.form;
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            $.ajax({
+                type:"post"
+                ,url:"adminUser/login"
+                ,data:data.field
+                ,success:function (str) {
+                    if(str.status){
+                        location.href = "index.html";
+                    }else {
+                        $("#msg").css("color","red");
+                        $("#msg").html(str.message);
+                    }
+                }
+            })
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

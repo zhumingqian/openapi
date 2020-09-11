@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.MenuMapper">
+
+
+    <select id="queryMenuByUserId" resultType="com.qianfeng.openapi.web.master.pojo.Menu">
+        select m.id,m.name,m.parent_id as parentId,m.url,m.icon,m.perms,m.type,m.sort from menu m
+        inner join role_menu rm
+        on m.id = rm.menu_id
+        inner join user_role ur
+        on rm.role_id = ur.role_id
+        where ur.user_id = #{id}
+    </select>
+
+    <resultMap id="queryMenus" type="Menu">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="parentId" column="parent_Id" />
+        <result property="url" column="url" />
+        <result property="icon" column="icon" />
+        <result property="perms" column="perms" />
+        <result property="type" column="type" />
+        <result property="sort" column="sort" />
+    </resultMap>
+    <select id="queryAllMenus" resultMap="queryMenus">
+        select * from menu
+    </select>
+
+    <select id="queryParentMenus" resultMap="queryMenus">
+        select * from menu where TYPE != 2
+    </select>
+
+    <update id="updateMenuById">
+        update menu
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="parentId != ''">
+                parent_Id = #{parentId},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+            <if test="icon != null and icon != ''">
+                icon = #{icon},
+            </if>
+            <if test="perms != null and perms != ''">
+                perms = #{perms},
+            </if>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="sort != null and sort != ''">
+                sort = #{sort},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <insert id="addMenu">
+        insert into menu (name, parent_Id, url, icon, perms, type, sort)
+        values (#{name},#{parentId},#{url},#{icon},#{perms},#{type},#{sort});
+    </insert>
+
+    <update id="updateMenuTypeById">
+        update menu
+        set type = 0
+        where id = #{id}
+    </update>
+
+    <select id="querySingleMenuById" resultMap="queryMenus">
+        select * from menu
+        where id = #{id}
+    </select>
+
+    <select id="queryMenuByIds" resultMap="queryMenus">
+        select * from menu
+        where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="queryMenuByParentId" resultMap="queryMenus">
+        select * from menu
+        where parent_Id = #{parentId}
+    </select>
+
+    <update id="releaseChildenMenu">
+        update menu
+        set parent_Id = #{parentId}
+        where parent_Id = #{id}
+    </update>
+
+    <delete id="deleteParentMenu">
+        delete from menu
+        where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.TokenMapper">
+
+    <select id="queryAllTokenInfo" resultType="com.qianfeng.openapi.web.master.pojo.Token">
+        select id,userId,access_token as accessToken,startTime,expireTime from token_info
+    </select>
+
+    <insert id="addTokenInfo">
+        insert into token_info(userId, access_token, startTime, expireTime) values(#{userId},#{accessToken},#{startTime},#{expireTime})
+    </insert>
+
+    <update id="updateTokenInfoById">
+        update token_info
+        <set>
+            <if test="userId != null">
+                userId = #{userId},
+            </if>
+            <if test="accessToken != null and accessToken != ''">
+                access_token = #{accessToken},
+            </if>
+            <if test="startTime != null and startTime != ''">
+                startTime = #{startTime},
+            </if>
+            <if test="expireTime != null and expireTime != ''">
+                expireTime = #{expireTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTokenInfoByIds">
+        delete from token_info
+        where id in
+        <foreach collection="array" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryTokenByCondition" resultType="com.qianfeng.openapi.web.master.pojo.Token">
+        select id,userId,access_token as accessToken,startTime,expireTime from token_info
+        <where>
+            <if test="accessToken != null and accessToken != ''">
+                and access_token like concat('%',#{accessToken},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

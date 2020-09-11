@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.AppInfoMapper">
+
+    <select id="queryAllAppInfo" resultType="com.qianfeng.openapi.web.master.pojo.AppInfo">
+        select * from app_info
+    </select>
+
+    <insert id="addAppInfo">
+        insert into app_info
+        values (null,#{corpName},#{appName},#{appKey},#{appSecret},#{redirectUrl},#{limits},#{description},#{cusId},#{state})
+    </insert>
+
+    <update id="updateAppInfo">
+        update app_info
+        <set>
+            <if test="corpName != null and corpName != ''">
+                corpName = #{corpName},
+            </if>
+
+            <if test="appName != null and appName != ''">
+                appName = #{appName},
+            </if>
+
+            <if test="appKey != null and appKey != ''">
+                appKey = #{appKey},
+            </if>
+
+            <if test="appSecret != null and appSecret != ''">
+                appSecret = #{appSecret},
+            </if>
+
+            <if test="redirectUrl != null and redirectUrl != ''">
+                redirectUrl = #{redirectUrl},
+            </if>
+
+            <if test="limits != null and limits != ''">
+                limits = #{limits},
+            </if>
+
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+
+            <if test="cusId != null and cusId != ''">
+                cusId = #{cusId},
+            </if>
+
+            <if test="state != null">
+                state = #{state},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAppInfoByIds">
+        delete from app_info
+        where id in
+        <foreach collection="array" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryAppInfoByCondition" resultType="com.qianfeng.openapi.web.master.pojo.AppInfo">
+        select * from app_info
+        <where>
+            <if test="appName != null and appName != ''">
+                and appName like concat('%',#{appName},'%')
+            </if>
+            <if test="state != null">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+</mapper>

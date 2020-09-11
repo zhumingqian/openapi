@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.RechargeMapper">
+
+    <select id="queryAllRechargeInfo" resultType="com.qianfeng.openapi.web.master.pojo.RechargeInfo">
+        select id,cusId,createTime,updateTime,money,state,paymentType
+        from recharge_info
+    </select>
+
+    <insert id="addRecharge">
+        insert into recharge_info(cusId, createTime, updateTime, money, state, paymentType) values (#{cusId},#{createTime},#{updateTime},#{money},#{state},#{paymentType})
+    </insert>
+
+    <update id="updateRechargeById">
+        update recharge_info
+        <set>
+            <if test="cusId != null and cusId != ''">
+                cusId = #{cusId},
+            </if>
+            <if test="createTime != null and createTime != ''">
+                createTime = #{createTime},
+            </if>
+            <if test="updateTime != null and updateTime != ''">
+                updateTime = #{updateTime},
+            </if>
+            <if test="money != null and money != ''">
+                money = #{money},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="paymentType != null">
+                paymentType = #{paymentType},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRechargeInfoByIds">
+        delete from recharge_info
+        where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

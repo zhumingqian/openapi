@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.RouteMapper">
+
+
+    <select id="queryAllRouteInfo" resultType="com.qianfeng.openapi.web.master.pojo.RouteInfo">
+        select * from route_info
+    </select>
+
+    <insert id="addRouteInfo">
+        insert into route_info
+        values (null , #{gatewayApiName},#{insideApiUrl},#{serviceId},#{description},#{state},#{idempotents},#{needFee})
+    </insert>
+
+    <update id="updateRouteInfo">
+        update route_info
+        <set>
+            <if test="gatewayApiName != null and gatewayApiName != ''">
+                gatewayApiName = #{gatewayApiName},
+            </if>
+            <if test="insideApiUrl != null and insideApiUrl != ''">
+                insideApiUrl = #{insideApiUrl},
+            </if>
+            <if test="serviceId != null and serviceId != ''">
+                serviceId = #{serviceId},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="idempotents != null">
+                idempotents = #{idempotents},
+            </if>
+            <if test="needFee != null">
+                needFee = #{needFee},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRouteInfoByIds">
+        delete from route_info
+        where id in
+        <foreach collection="array" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="queryRouteInfoByCondition" resultType="com.qianfeng.openapi.web.master.pojo.RouteInfo">
+        select * from route_info
+        <where>
+            <if test="gatewayApiName != null and gatewayApiName != ''">
+                and gatewayApiName like concat('%',#{gatewayApiName},'%')
+            </if>
+            <if test="state != null">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.AdminUserMapper">
+
+    <select id="queryAdminUserByEmail" resultType="com.qianfeng.openapi.web.master.pojo.AdminUser">
+        select * from admin_user
+        where email = #{email}
+    </select>
+
+    <select id="queryAllUserInfo" resultType="com.qianfeng.openapi.web.master.pojo.AdminUser">
+        select * from admin_user
+    </select>
+
+    <insert id="addAdminUser">
+        <selectKey keyProperty="id" order="AFTER" resultType="int">
+            select last_insert_id();
+        </selectKey>
+        insert into admin_user(id , password, email, realName, status , role)
+        values (#{id} , #{password},#{email},#{realName},#{status} , #{role})
+    </insert>
+
+    <update id="updateAdminUserById">
+        update admin_user
+        <set>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="realName != null and realName != ''">
+                realName = #{realName},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="role != null">
+                role = #{role},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserInfo">
+        delete from admin_user
+        where id in
+        <foreach collection="array" separator="," open="(" close=")" item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <update id="updateAdminUserRoleRelation">
+        update user_role
+        set ROLE_ID = #{role}
+        where USER_ID = #{userId}
+    </update>
+</mapper>

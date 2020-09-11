@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>客户管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<form action="#" class="layui-form">
+    <div class="layui-form-item" style="margin-left: 10px;margin-top: 10px">
+        <div class="layui-inline">
+            <label>名称:</label>
+            <div class="layui-inline">
+                <input type="text" name="userName" id="username" autocomplete="off" placeholder="请输入名称"
+                       class="layui-input">
+            </div>
+            状态:
+            <div class="layui-inline">
+                <select name="state" id="state">
+                    <option value="">请选择</option>
+                    <option value="0">停用</option>
+                    <option value="1">正常</option>
+                </select>
+            </div>
+            <input type="button" class="layui-btn" id="searchInfo" value="搜索"/>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="customer-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit">
+            <i class="layui-icon">&#xe654;</i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">
+            <i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="customer-customer-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-customer">编辑</a>
+</script>
+<table id="demo" lay-filter="customer-table"></table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    $(function () {
+        renderTable();
+        search();
+    })
+
+    function search() {
+        $("#searchInfo").click(function () {
+            var userName = $("#username").val();
+            var state = $("#state").val();
+            layui.use(['table','form'], function () {
+                var table = layui.table;
+                var form = layui.form;
+                form.render();
+                alert(userName);
+                //第一个实例
+                table.render({
+                    elem: '#demo'
+                    , height: 550
+                    , toolbar: '#customer-head-bar'
+                    , url: "sys/customer/queryCustomerByCondition?userName="  + userName + "&state=" + state
+                    , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                    , cols: [[ //表头
+                        {type: 'checkbox', width: 80}
+                        , {field: 'id', title: 'ID', width: 80}
+                        , {field: 'userName', title: '用户名'}
+                        , {field: 'password', title: '密码'}
+                        , {field: 'nickName', title: '公司名称'}
+                        , {field: 'address', title: '地址'}
+                        , {field: 'money', title: '余额'}
+                        , {
+                            field: 'state', title: '状态', width: 80, templet: function (data) {
+                                return (data.state == 1) ? '<span class="layui-badge layui-bg-green">正常</span>' : '<span class="layui-badge layui-bg-red">停用</span>';
+                            }
+                        }
+                        , {field: 'right', title: '操作', toolbar: '#customer-customer-bar', width: 80}
+                    ]]
+                });
+            });
+        });
+    }
+
+    function renderTable() {
+        layui.use(['table', 'form', 'layer'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            form.render();
+            //第一个实例
+            table.render({
+                elem: '#demo'
+                , height: 550
+                , toolbar: '#customer-head-bar'
+                , url: 'sys/customer/queryAllCustomer' //数据接口
+                , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                , cols: [[ //表头
+                    {type: 'checkbox', width: 80}
+                    , {field: 'id', title: 'ID', width: 80}
+                    , {field: 'userName', title: '用户名'}
+                    , {field: 'password', title: '密码'}
+                    , {field: 'nickName', title: '公司名称'}
+                    , {field: 'address', title: '地址'}
+                    , {field: 'money', title: '余额'}
+                    , {
+                        field: 'state', title: '状态', width: 80, templet: function (data) {
+                            return (data.state == 1) ? '<span class="layui-badge layui-bg-green">正常</span>' : '<span class="layui-badge layui-bg-red">停用</span>';
+                        }
+                    }
+                    , {field: 'right', title: '操作', toolbar: '#customer-customer-bar', width: 80}
+                ]]
+            })
+            table.on('toolbar(customer-table)', function (obj) {
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        /*获取所有选中行数据*/
+                        var data = table.checkStatus("demo").data;
+                        // console.log(data);
+                        if (data.length > 0) {
+                            layer.confirm("确定删除选中数据?", function (index) {
+                                var params = "";
+                                /*遍历data*/
+                                $.each(data, function (i, obj) {
+                                    params += "&ids=" + obj.id;
+                                })
+                                /*发送ajax请求*/
+                                $.ajax({
+                                    type: "post"
+                                    , url: "sys/customer/deleteCustomer"
+                                    , data: params
+                                    , success: function (data) {
+                                        if (data.status) {
+                                            table.reload("demo", {});
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                        layer.close(index);
+                                    }
+                                });
+                            });
+                        }
+                        break;
+                }
+            })
+            table.on('tool(customer-table)', function (obj) {
+                var data = obj.data;
+                switch (obj.event) {
+                    case 'edit-customer':
+                        openEditWindow(data);
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type: 1
+                    , title: "编辑"
+                    , area: ['500px', '400px']
+                    , content: data == null ? $("#customer-add-layer").html() : $("#customer-edit-layer").html()
+                    , btn: ['提交', '取消']
+                    , yes: function (index, layero) {
+                        $.ajax({
+                            type: "post"
+                            ,
+                            url: "sys/customer/" + (data == null ? "add" : "update")
+                            ,
+                            data: data == null ? $("#customer-add-form").serialize() : $("#customer-edit-form").serialize()
+                            ,
+                            success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    , success: function (layero, index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("customer-edit-form", data);
+                            form.val("customer-edit-form", {
+                                "state": data.state + ""
+                            });
+                        }
+                    }
+                })
+            }
+        });
+    }
+</script>
+<script type="text/html" id="customer-edit-layer">
+    <form id="customer-edit-form" style="width: 80%" class="layui-form" lay-filter="customer-edit-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="nickName" required lay-verify="required" placeholder="请输入公司名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" required lay-verify="required" placeholder="请输入密码"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="address" required lay-verify="required" placeholder="请输入地址"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">账户金额(元)</label>
+            <div class="layui-input-block">
+                <input type="number" name="money" required lay-verify="required" placeholder="请输入账号金额"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" title="有效" value="1" checked/>
+                <input type="radio" name="state" title="无效" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+
+
+<script type="text/html" id="customer-add-layer">
+    <form id="customer-add-form" style="width: 80%" class="layui-form" lay-filter="customer-edit-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-block">
+                <input type="text" name="userName" required lay-verify="required" placeholder="请输入用户名"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="nickName" required lay-verify="required" placeholder="请输入公司名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" required lay-verify="required" placeholder="请输入密码"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="address" required lay-verify="required" placeholder="请输入地址"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">账户金额(元)</label>
+            <div class="layui-input-block">
+                <input type="number" name="money" required lay-verify="required" placeholder="请输入账号金额"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" title="有效" value="1" checked/>
+                <input type="radio" name="state" title="无效" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

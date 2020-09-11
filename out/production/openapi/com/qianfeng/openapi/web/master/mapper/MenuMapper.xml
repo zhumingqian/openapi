@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qianfeng.openapi.web.master.mapper.MenuMapper">
+
+
+    <select id="queryMenuByUserId" resultType="com.qianfeng.openapi.web.master.pojo.Menu">
+        select m.id,m.name,m.parent_id as parentId,m.url,m.icon,m.perms,m.type,m.sort from menu m
+        inner join role_menu rm
+        on m.id = rm.menu_id
+        inner join user_role ur
+        on rm.role_id = ur.role_id
+        where ur.user_id = #{id}
+    </select>
+</mapper>

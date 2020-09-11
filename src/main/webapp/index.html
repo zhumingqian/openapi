@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开放平台后台管理主页</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">开放平台后台管理</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left" id="topMenu">
+            <li class="layui-nav-item"><a href="">顶部菜单1</a></li>
+            <li class="layui-nav-item"><a href="">顶部菜单2</a></li>
+            <li class="layui-nav-item"><a href="">顶部菜单3</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">顶部下拉菜单</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">下拉子菜单1</a></dd>
+                    <dd><a href="">下拉子菜单2</a></dd>
+                    <dd><a href="">下拉子菜单3</a></dd>
+                </dl>
+            </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    <span id="userName" ></span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">安全设置</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javaScript:" id="exist">退出</a></li>
+        </ul>
+    </div>
+    <!--管理员界面菜单-->
+    <div class="layui-side layui-bg-black" id="adminMenu">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test" id="left_menu">
+                <!--左侧菜单区域   自动加载-->
+            </ul>
+        </div>
+    </div>
+    <div class="layui-body" id="main_context">
+        <!--主体内容区域-->
+
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        © Part3 Spring+SpringMVC+Mybatis
+    </div>
+</div>
+<script type="text/javascript" src="js/jquery-3.4.1.js"></script>
+<script src="layui/layui.js"></script>
+<script>
+    $(function () {
+        $("#exist").click(function () {
+            $.ajax({
+                type:"get"
+                ,url:"adminUser/exist"
+                ,success:function (res) {
+                    if(res){
+                        location.href = "logins.html";
+                    }
+                }
+            })
+        });
+        $.ajax({
+            type:"get"
+            ,url:"adminUser/getSession"
+            ,success:function (data) {
+                $("#userName").html(data.realName);
+            }
+        })
+    })
+    //JavaScript代码区域
+    layui.use('element', function(){
+        var element = layui.element;
+        var str = "";
+        $.ajax({
+            url:"sys/menu/loadMenu"
+            ,type:"get"
+            ,success:function (result) {
+                console.log(result);
+                if(result.status){
+                    $.each(result.obj , function (index , item) {
+                        str += "<li class='layui-nav-item'>";
+                        if(item.type == 1){
+                            str += "<a href='javaScript:' onclick=\"toPath('"+item.url+"')\">"+item.name+"</a>";
+                        }else{
+                            str += "<a href='javaScript:'>"+item.name+"</a>";
+                        }
+                        if(item.menuList.length > 0){
+                            loadLowLevelMenu(item.menuList);
+                        }
+                        str += "</li>";
+                    })
+
+                    $("#left_menu").html(str);
+                    element.render();
+                }
+                /*加载子菜单*/
+                function loadLowLevelMenu(menus) {
+                    str += "<dl class='layui-nav-child'>";
+                    $.each(menus , function (index , item) {
+                        str += "<dd>";
+                        if(item.type == 1){
+                            str += "<a href='javaScript:' onclick=\"toPath('"+item.url+"')\">"+item.name+"</a>";
+                        }else{
+                            str += "<a href='javaScript:'>"+item.name+"</a>";
+                        }
+                        if(item.menuList.length > 0){
+                            loadLowLevelMenu(item.menuList);
+                        }
+                        str += "</dd>";
+                    })
+                    str += "</dl>";
+                }
+            }
+        })
+    });
+
+    function toPath(url){
+        $("#main_context").load(url);
+    }
+</script>
+</body>
+</html>

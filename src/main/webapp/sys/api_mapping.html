@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>路由管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<form action="#" class="layui-form">
+    <div class="layui-form-item" style="margin-left: 10px;margin-top: 10px">
+        <div class="layui-inline">
+            <label>名称:</label>
+            <div class="layui-inline">
+                <input type="text" name="gatewayApiName" id="gatewayApiName" autocomplete="off" placeholder="请输入应用名称" class="layui-input">
+            </div>
+            状态:
+            <div class="layui-inline">
+                <select name="state" id="state">
+                    <option value="">请选择</option>
+                    <option value="0">停用</option>
+                    <option value="1">正常</option>
+                </select>
+            </div>
+<!--            <button class="layui-btn" lay-submit lay-filter="routeInfo-table" id="searchInfo">搜索</button>-->
+            <input type="button" class="layui-btn" id="searchInfo" value="搜索"/>
+        </div>
+    </div>
+</form>
+<script type="text/html" id="routeInfo-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">
+            <i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="routeInfo-routeInfo-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-routeInfo">编辑</a>
+</script>
+<table id="demo" lay-filter="routeInfo-table"></table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    $(function () {
+        renderTable();
+        search();
+    })
+
+    function search() {
+        $("#searchInfo").click(function () {
+            var gatewayApiName = $("#gatewayApiName").val();
+            var state = $("#state").val();
+            layui.use(['table','form'], function () {
+                var table = layui.table;
+                var form = layui.form;
+                form.render();
+                //第一个实例
+                table.render({
+                    elem: '#demo'
+                    , height: 550
+                    , toolbar: '#routeInfo-head-bar'
+                    , url: 'sys/routeInfo/queryRouteInfoByCondition?gatewayApiName=' + gatewayApiName + '&state=' + state
+                    , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                    , cols: [[ //表头
+                        {type: 'checkbox', width: 80}
+                        , {field: 'id', title: 'ID', width: 80}
+                        , {field: 'gatewayApiName', title: '网关Api名称'}
+                        , {field: 'insideApiUrl', title: '服务接口地址'}
+                        , {field: 'serviceId', title: '服务名称'}
+                        , {field: 'description', title: '介绍信息'}
+                        , {
+                            field: 'state', title: '状态', width: 80, templet: function (data) {
+                                return (data.state == 1) ? '<span class="layui-badge layui-bg-green">正常</span>' : '<span class="layui-badge layui-bg-red">停用</span>';
+                            }
+                        }
+                        , {
+                            field: 'idempotents', title: '幂等性', width: 80, templet: function (data) {
+                                return (data.idempotents == 1) ?
+                                    '<span class="layui-badge layui-bg-green">幂等</span>' :
+                                    '<span class="layui-badge layui-bg-red">非幂等</span>';
+                            }
+                        }
+                        , {
+                            field: 'needFee', title: '是否收费', width: 80, templet: function (data) {
+                                return (data.idempotents == 1) ?
+                                    '<span class="layui-badge layui-bg-green">收费</span>' :
+                                    '<span class="layui-badge layui-bg-red">免费</span>';
+                            }
+                        }
+                        , {field: 'right', title: '操作', toolbar: '#routeInfo-routeInfo-bar', width: 80}
+                    ]]
+                });
+            });
+        });
+    }
+
+    function renderTable() {
+        layui.use(['table', 'form', 'layer'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            form.render();
+            //第一个实例
+            table.render({
+                elem: '#demo'
+                , height: 550
+                , toolbar: '#routeInfo-head-bar'
+                , url: 'sys/routeInfo/queryAllRouteInfo' //数据接口
+                , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                , cols: [[ //表头
+                    {type: 'checkbox', width: 80}
+                    , {field: 'id', title: 'ID', width: 80}
+                    , {field: 'gatewayApiName', title: '网关Api名称'}
+                    , {field: 'insideApiUrl', title: '服务接口地址'}
+                    , {field: 'serviceId', title: '服务名称'}
+                    , {field: 'description', title: '介绍信息'}
+                    , {
+                        field: 'state', title: '状态', templet: function (data) {
+                            return (data.state == 1) ? '<span class="layui-badge layui-bg-green">正常</span>' : '<span class="layui-badge layui-bg-red">停用</span>';
+                        }
+                    }
+                    , {
+                        field: 'idempotents', title: '幂等性', templet: function (data) {
+                            return (data.idempotents == 1) ?'<span class="layui-badge layui-bg-green">幂等</span>' :'<span class="layui-badge layui-bg-red">非幂等</span>';
+                        }
+                    }
+                    , {
+                        field: 'needFee', title: '是否收费', templet: function (data) {
+                            return (data.needFee == 1) ?'<span class="layui-badge layui-bg-red">收费</span>' :'<span class="layui-badge layui-bg-green">免费</span>';
+                        }
+                    }
+                    , {field: 'right', title: '操作', toolbar: '#routeInfo-routeInfo-bar', width: 80}
+                ]]
+            })
+            table.on('toolbar(routeInfo-table)', function (obj) {
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        /*获取所有选中行数据*/
+                        var data = table.checkStatus("demo").data;
+                        // console.log(data);
+                        if (data.length > 0) {
+                            layer.confirm("确定删除选中数据?", function (index) {
+                                var params = "";
+                                /*遍历data*/
+                                $.each(data, function (i, obj) {
+                                    params += "&ids=" + obj.id;
+                                })
+                                /*发送ajax请求*/
+                                $.ajax({
+                                    type: "post"
+                                    , url: "sys/routeInfo/deleteRouteInfo"
+                                    , data: params
+                                    , success: function (data) {
+                                        if (data.status) {
+                                            table.reload("demo", {});
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                        layer.close(index);
+                                    }
+                                });
+                            });
+                        }
+                        break;
+                }
+            })
+            table.on('tool(routeInfo-table)', function (obj) {
+                var data = obj.data;
+                switch (obj.event) {
+                    case 'edit-routeInfo':
+                        openEditWindow(data);
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type: 1
+                    , title: data==null?"添加":"编辑"
+                    , area: ['500px', '400px']
+                    , content:$("#routeInfo-edit-layer").html()
+                    , btn: ['提交', '取消']
+                    , yes: function (index, layero) {
+                        $.ajax({
+                            type: "post"
+                            ,url: "sys/routeInfo/" + (data == null ? "add" : "update")
+                            ,data:$("#routeInfo-edit-form").serialize()
+                            ,success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    , success: function (layero, index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("routeInfo-edit-form", data);
+                            form.val("routeInfo-edit-form", {
+                                "state": data.state + "",
+                                "idempotents": data.idempotents + "",
+                                "needFee": data.needFee + ""
+                            });
+                        }
+                    }
+                })
+            }
+        });
+    }
+</script>
+<script type="text/html" id="routeInfo-edit-layer">
+    <form id="routeInfo-edit-form" style="width: 80%" class="layui-form" lay-filter="routeInfo-edit-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">网关Api名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="gatewayApiName" required lay-verify="required" placeholder="请输入网关Api名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务接口地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="insideApiUrl" required lay-verify="required" placeholder="请输入服务接口地址"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">服务名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="serviceId" required lay-verify="required" placeholder="请输入服务名称"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">介绍信息</label>
+            <div class="layui-input-block">
+                <input type="text" name="description" required lay-verify="required" placeholder="请输入介绍信息"
+                       autocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="state" title="有效" value="1" checked/>
+                <input type="radio" name="state" title="无效" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">幂等性</label>
+            <div class="layui-input-block">
+                <input type="radio" name="idempotents" title="幂等" value="1" checked/>
+                <input type="radio" name="idempotents" title="非幂等" value="0"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否收费</label>
+            <div class="layui-input-block">
+                <input type="radio" name="needFee" title="收费" value="1" checked/>
+                <input type="radio" name="needFee" title="免费" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

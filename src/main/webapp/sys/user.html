@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<!--<form action="#" class="layui-form">-->
+<!--    <div class="layui-form-item" style="margin-left: 10px;margin-top: 10px">-->
+<!--        <div class="layui-inline">-->
+<!--            <label>名称:</label>-->
+<!--            <div class="layui-inline">-->
+<!--                <input type="text" name="appName" id="appName" autocomplete="off" placeholder="请输入应用名称" class="layui-input">-->
+<!--            </div>-->
+<!--            状态:-->
+<!--            <div class="layui-inline">-->
+<!--                <select name="state" id="state">-->
+<!--                    <option value="">请选择</option>-->
+<!--                    <option value="0">停用</option>-->
+<!--                    <option value="1">正常</option>-->
+<!--                </select>-->
+<!--            </div>-->
+<!--            &lt;!&ndash;            <button class="layui-btn" lay-submit lay-filter="userInfo-table" id="searchInfo">搜索</button>&ndash;&gt;-->
+<!--            <input type="button" class="layui-btn" id="searchInfo" value="搜索"/>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</form>-->
+<script type="text/html" id="userInfo-head-bar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="goEdit"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">
+            <i class="layui-icon">&#xe640;</i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="userInfo-userInfo-bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit-userInfo">编辑</a>
+</script>
+<table id="demo" lay-filter="userInfo-table"></table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    $(function () {
+        renderTable();
+        search();
+    })
+
+    // function search() {
+    //     $("#searchInfo").click(function () {
+    //         var appName = $("#appName").val();
+    //         var state = $("#state").val();
+    //         layui.use(['table','form'], function () {
+    //             var table = layui.table;
+    //             var form = layui.form;
+    //             form.render();
+    //             //第一个实例
+    //             table.render({
+    //                 elem: '#demo'
+    //                 , height: 550
+    //                 , toolbar: '#userInfo-head-bar'
+    //                 , url: 'sys/userInfo/queryuserInfoByCondition?appName=' + appName + '&state=' + state
+    //                 , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+    //                 , cols: [[ //表头
+    //                     {type: 'checkbox', width: 80}
+    //                     , {field: 'id', title: 'ID', width: 80}
+    //                     , {field: 'corpName', title: '企业名称'}
+    //                     , {field: 'appName', title: '应用名称'}
+    //                     , {field: 'appKey', title: '应用唯一标识Key'}
+    //                     , {field: 'appSecret', title: '应用签名秘钥'}
+    //                     , {field: 'redirectUrl', title: '应用回调URL'}
+    //                     , {field: 'limits', title: '免费接口日调用限制次数'}
+    //                     , {field: 'description', title: '应用描述'}
+    //                     , {field: 'cusId', title: '关联客户id'}
+    //                     , {
+    //                         field: 'state', title: '状态', width: 80, templet: function (data) {
+    //                             return (data.state == 1) ? '<span class="layui-badge layui-bg-green">正常</span>' : '<span class="layui-badge layui-bg-red">停用</span>';
+    //                         }
+    //                     }
+    //                     , {field: 'right', title: '操作', toolbar: '#userInfo-userInfo-bar', width: 80}
+    //                 ]]
+    //             });
+    //         });
+    //     });
+    // }
+
+    function renderTable() {
+        layui.use(['table', 'form', 'layer'], function () {
+            var table = layui.table;
+            var form = layui.form;
+            var layer = layui.layer;
+            form.render();
+            //第一个实例
+            table.render({
+                elem: '#demo'
+                , height: 550
+                , toolbar: '#userInfo-head-bar'
+                , url: 'adminUser/queryAllUserInfo' //数据接口
+                , page: {'limits': [10, 15, 20, 25, 30]}//开启分页
+                , cols: [[ //表头
+                    {type: 'checkbox', width: 80}
+                    , {field: 'id', title: 'ID'}
+                    , {field: 'email', title: '邮箱'}
+                    , {field: 'password', title: '用户密码'}
+                    , {field: 'realName', title: '真实姓名'}
+                    , {
+                        field: 'status', title: '状态', templet: function (data) {
+                            if (data.status == 1) {
+                                return '<span class="layui-badge layui-bg-green">正常</span>';
+                            } else if (data.status == 0) {
+                                return '<span class="layui-badge layui-bg-red">停用</span>';
+                            }
+                        }
+                    }
+                    , {field: 'role', title: '角色'}
+                    , {field: 'right', title: '操作', toolbar: '#userInfo-userInfo-bar'}
+                ]]
+            })
+
+            // function loadRoleInfo(data){
+            //     $.ajax({
+            //         type: "get"
+            //         , url: "adminUser/queryRole"
+            //         , success: function (res) {
+            //             if (res) {
+            //                 for (var i = 0; i < res.length; i++) {
+            //                     if(data.role==res[i].id){
+            //                         return "<span class='layui-badge layui-bg-green'>"+res[i].remark+"</span>";
+            //                     }
+            //                 }
+            //                 return "<span class='layui-badge layui-bg-red'>未找到对应角色</span>";
+            //             }else{
+            //                 return "<span class='layui-badge layui-bg-red'>未找到对应角色</span>";
+            //             }
+            //         }
+            //     })
+            // }
+
+
+
+            table.on('toolbar(userInfo-table)', function (obj) {
+                switch (obj.event) {
+                    case 'goEdit':
+                        openEditWindow(null);
+                        break;
+                    case 'delete':
+                        /*获取所有选中行数据*/
+                        var data = table.checkStatus("demo").data;
+                        // console.log(data);
+                        if (data.length > 0) {
+                            layer.confirm("确定删除选中数据?", function (index) {
+                                var params = "";
+                                /*遍历data*/
+                                $.each(data, function (i, obj) {
+                                    params += "&ids=" + obj.id;
+                                })
+                                /*发送ajax请求*/
+                                $.ajax({
+                                    type: "post"
+                                    , url: "adminUser/deleteUserInfo"
+                                    , data: params
+                                    , success: function (data) {
+                                        if (data.status) {
+                                            table.reload("demo", {});
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                        layer.close(index);
+                                    }
+                                });
+                            });
+                        }
+                        break;
+                }
+            })
+            table.on('tool(userInfo-table)', function (obj) {
+                var data = obj.data;
+                switch (obj.event) {
+                    case 'edit-userInfo':
+                        openEditWindow(data);
+                        break;
+                    case 'root-userInfo':
+                        openRootWindow();
+                        break;
+                }
+            })
+
+            function openEditWindow(data) {
+                layer.open({
+                    type: 1
+                    , title: data == null ? "添加" : "编辑"
+                    , area: ['500px', '400px']
+                    , content: $("#userInfo-edit-layer").html()
+                    , btn: ['提交', '取消']
+                    , yes: function (index, layero) {
+                        $.ajax({
+                            type: "post"
+                            , url: "adminUser/" + (data == null ? "add" : "update")
+                            , data: $("#userInfo-edit-form").serialize()
+                            , success: function (data) {
+                                if (data.status) {//成功
+                                    //表格重载
+                                    table.reload("demo", {});
+                                    //关闭窗口
+                                    layer.close(index);
+                                } else {//不成功
+                                    alert(data.message)
+                                }
+                                layer.closeAll("loading");
+                            }
+                        })
+                    }
+                    , success: function (layero, index) {
+                        //刷新form表单
+                        form.render();
+                        if (data != null) {
+                            form.val("userInfo-edit-form", data);
+                            form.val("userInfo-edit-form", {
+                                "state": data.state + ""
+                            });
+                        }
+                        $.ajax({
+                            type: "get"
+                            , url: "adminUser/queryRole"
+                            , success: function (res) {
+                                if (res) {
+                                    $("#role").append("<option>选择用户角色</option>");
+                                    for (var i = 0; i < res.length; i++) {
+                                        if(data&&data.role&&data.role==res[i].id){
+                                            $("#role").append("<option selected value="+res[i].id+">"+res[i].remark+"</option>");
+                                        }else{
+                                            $("#role").append("<option value=" + res[i].id + ">" + res[i].remark + "</option>");
+                                        }
+                                    }
+                                }
+                                form.render();
+                            }
+                        })
+                    }
+                })
+            }
+        });
+    }
+</script>
+<script type="text/html" id="userInfo-edit-layer">
+    <form id="userInfo-edit-form" style="width: 80%" class="layui-form" lay-filter="userInfo-edit-form">
+
+        <input type="hidden" name="id">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮箱</label>
+            <div class="layui-input-block">
+                <input type="text" name="email" required lay-verify="email" placeholder="请输入用户登录邮箱" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" required lay-verify="required" placeholder="请输入用户密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">真实姓名</label>
+            <div class="layui-input-block">
+                <input type="text" name="realName" required lay-verify="required" placeholder="请输入真实名字" autocomplete="off"  class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属角色</label>
+            <div class="layui-input-block">
+                <select id="role" name="role">
+
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="status" title="正常" value="1" checked/>
+                <input type="radio" name="status" title="停用" value="0"/>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>
