@@ -35,13 +35,22 @@ public class Token {
   private Date expireTime;
 
 
-
+  /**
+   * 私有化构造方法
+   */
   private Token(){}
 
+  /**
+   * 内部类
+   */
   private static class TokenObj{
     private static final Token TOKEN_INSTANT = new Token();
   }
 
+  /**
+   * 向外提供实例对象
+   * @return Token
+   */
   public static Token getToken(){
     return TokenObj.TOKEN_INSTANT;
   }

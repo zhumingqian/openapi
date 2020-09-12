@@ -45,12 +45,22 @@ public class RechargeInfo {
    */
   private Integer paymentType;
 
+  /**
+   * 私有化构造方法
+   */
   private RechargeInfo(){}
 
+  /**
+   * 内部类
+   */
   private static class GetRechargeInstant{
     public static final RechargeInfo RECHARGE_INFO = new RechargeInfo();
   }
 
+  /**
+   * 向外提供对象实例
+   * @return RechargeInfo
+   */
   public static RechargeInfo rechargeInstant(){
       return GetRechargeInstant.RECHARGE_INFO;
   }
