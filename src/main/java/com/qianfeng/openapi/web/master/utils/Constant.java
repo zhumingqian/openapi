@@ -6,7 +6,7 @@ package com.qianfeng.openapi.web.master.utils;
  * @since 1.8
  * 常量类
  */
-public interface Constant {
+public class Constant {
     /**
      * session存储的登录用户key值
      */
